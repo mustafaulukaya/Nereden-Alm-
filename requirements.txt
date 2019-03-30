@@ -2,54 +2,27 @@
 # https://github.com/damnever/pigar
 
 # dataset\dataset\byte2image.py: 2
-# main.py: 8,9,12,13,14,15,16
-keras == 2.2.4
+# main.py: 8,9,13,14,15,16,17
+Keras == 2.2.4
+
+# main.py: 6,7
+Pillow == 5.4.1
 
 # colordescriptor.py: 1
 # dataset\dataset\byte2image.py: 47
-# main.py: 20
+# main.py: 21
 # mnist_reader.py: 4
 # searcher.py: 2
 numpy == 1.16.2
 
-# main.py: 6,7
-omelette == 1.1.6
-
 # colordescriptor.py: 2
 # dataset\dataset\byte2image.py: 1
 # index.py: 5
-# main.py: 19
-opencv-contrib-python == 4.0.0.21
+# main.py: 20
+opencv_python_headless == 4.0.0.21
 
-# colordescriptor.py: 2
-# dataset\dataset\byte2image.py: 1
-# index.py: 5
-# main.py: 19
-opencv-contrib-python-headless == 4.0.0.21
+# main.py: 12
+tensorflow-gpu
 
-# colordescriptor.py: 2
-# dataset\dataset\byte2image.py: 1
-# index.py: 5
-# main.py: 19
-opencv-python == 4.0.0.21
-
-# colordescriptor.py: 2
-# dataset\dataset\byte2image.py: 1
-# index.py: 5
-# main.py: 19
-opencv-python-aarch64 == 3.3.0.1
-
-# colordescriptor.py: 2
-# dataset\dataset\byte2image.py: 1
-# index.py: 5
-# main.py: 19
-opencv-python-headless == 4.0.0.21
-
-# main.py: 6,7
-pillow == 5.4.1
-
-# main.py: 6,7
-pillow-simd == 5.3.0.post0
-
-# main.py: 22
-searcher == 0.1.0
+# colordescriptor.py: 3
+imutils == 0.5.2

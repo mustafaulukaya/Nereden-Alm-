@@ -1,2 +1,3 @@
--- python 3.6
--- nvdia cuda gpu
+Required_item.txt dosyasındaki ilgili dosyaları indirin.
+Projedeki requirements kısmında bulunan kütüphaneleri indirin.
+Çalıştırın.

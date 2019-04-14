@@ -420,8 +420,6 @@ def loadmodel():
         # dosya isimleri class'lar, içeriği de train olacak şekilde ayarlamam gerek
 
 
-
-        '''
         # fashion_mnist datasetleri x'ler image y'ler label
         x_train, y_train = mr.load_mnist('dataset/dataset', kind='train')
         x_test, y_test = mr.load_mnist('dataset/dataset', kind='t10k')
@@ -429,15 +427,14 @@ def loadmodel():
         x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
         x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
 
-        '''
 
-        '''
+
+
         # RGB için extra axis ekledik
         x_train = np.expand_dims(x_train, axis=0)
         x_test = np.expand_dims(x_test, axis=0)
-        '''
 
-        '''
+
         x_traintest = np.ndarray(shape=(60000, img_height, img_width, 3), dtype=int)
         
         # gray'dan RGB ye çevirdik
@@ -462,7 +459,7 @@ def loadmodel():
         # Veri setimizdeki etiketleri de 1 boyutlu numpy array yapısından kategorik matriks yapısına çevirmemiz gerekiyor.
         y_train = keras.utils.to_categorical(y_train, num_classes)
         y_test = keras.utils.to_categorical(y_test, num_classes)
-        '''
+
 
         # Optimizasyon yöntemi ve hiperparametreler
         # myopt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)

@@ -424,10 +424,9 @@ def loadmodel():
         x_train, y_train = mr.load_mnist('dataset/dataset', kind='train')
         x_test, y_test = mr.load_mnist('dataset/dataset', kind='t10k')
 
+
         x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
         x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
-
-
 
 
         # RGB için extra axis ekledik
@@ -463,6 +462,7 @@ def loadmodel():
 
         # Optimizasyon yöntemi ve hiperparametreler
         # myopt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+
 
         # eğitim
         model.fit(x_train, y_train,

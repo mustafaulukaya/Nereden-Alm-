@@ -24,7 +24,7 @@ numpy == 1.16.2
 # dataset\dataset\byte2image.py: 1
 # index.py: 5
 # main.py: 20
-opencv-python == 4.0.0.21
+opencv-python == 3.4.3.18
 
 # colordescriptor.py: 3
 imutils == 0.5.2

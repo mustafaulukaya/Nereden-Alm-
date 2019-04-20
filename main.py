@@ -350,9 +350,9 @@ def loadmodel():
 
         batch_size = 128
         epochs = 100
-        # num_classes = 10
+        num_classes = 10
 
-        # img_width, img_height = 28, 28  # ağa girecek fotoğrafların boyutu
+        img_width, img_height = 28, 28  # ağa girecek fotoğrafların boyutu
 
         # 3-channel kabul ediyor,gray scale sokamıyoruz ve en düşük 48x48 lik fotoğraf istiyor
         # pre train için ağlar hakkında bilgi: https://keras.io/applications

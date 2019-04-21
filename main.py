@@ -20,9 +20,13 @@ import cv2
 import numpy as np
 from colordescriptor import ColorDescriptor
 from searcher import Searcher
+from keras.preprocessing.image import ImageDataGenerator,array_to_img, img_to_array, load_img
+from TwoWayDict import TwoWayDict as Dict
+import glob
 
-
-img_height, img_width, num_classes = 200, 200, 4
+img_height, img_width = 128, 128
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+class_number_map = Dict()
 
 
 def crop(canvas):
@@ -232,7 +236,7 @@ def buttonsinit(root, canvas):
 def test():
 
     x_test, y_test = mr.load_mnist('dataset/dataset', kind='t10k')
-    x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
+    x_test = x_test.reshape(x_test.shape[0], img_width, img_height, 1)
 
     x_testtest = np.ndarray(shape=(10000, img_height, img_width, 3), dtype=int)
 
@@ -275,6 +279,44 @@ def run():
     # and launch the app
     root.mainloop()  # This call BLOCKS (so your program waits)
 
+def SetClassNumberMap():
+
+    datasetPath = os.path.join(os.getcwd(), 'RGBDATASET\\TRAIN\\')
+    index = 0
+
+    for _class in os.listdir(datasetPath):
+        class_number_map[_class] = index
+        index = index + 1
+
+
+def GetRGBSet(isTest = False):
+    images = []
+    labels = []
+
+
+    if(isTest):
+        datasetPath = os.path.join(os.getcwd(), 'RGBDATASET\\TEST\\')
+    else:
+        datasetPath = os.path.join(os.getcwd(), 'RGBDATASET\\TRAIN\\')
+
+    index = 0
+
+    for _class in os.listdir(datasetPath):
+        class_number_map[_class] = index
+
+        for image in glob.glob(datasetPath + _class + '\\*.jpg'):
+            cv2_image = cv2.imread(image, cv2.IMREAD_ANYCOLOR)
+            cv2_image = cv2.resize(cv2_image, (img_width, img_height))
+            images.append(cv2_image)
+            labels.append(index)
+
+        index = index + 1
+
+
+    num_classes = index
+
+
+    return np.array(images), np.array(labels), num_classes
 
 def loadmodel():
     # username = getpass.getuser()
@@ -286,6 +328,17 @@ def loadmodel():
     PATH2 = 'model.h5'
     PATH2 = os.path.join(os.getcwd() + '/saves', PATH2)
 
+    SetClassNumberMap()
+
+
+    for i in range(class_number_map.__len__()):
+        if not (os.path.isfile(os.getcwd() + "/index/" + str(i) + ".csv") and os.access(os.getcwd() + "/index/"+str(i)+".csv", os.R_OK)):
+            print(class_number_map[i] + " indexleniyor")
+            os.system("python index.py --dataset "+class_number_map[i]+" --index "+str(i)+".csv")
+
+
+
+    '''
     if not (os.path.isfile(os.getcwd() + "/index/0.csv") and os.access(os.getcwd() + "/index/0.csv", os.R_OK)):
         print("T-shirt indexleniyor")
         os.system("python index.py --dataset T-shirt --index 0.csv")
@@ -326,16 +379,19 @@ def loadmodel():
         print("Cizme indexleniyor")
         os.system("python index.py --dataset Cizme --index 9.csv")
 
+    '''
+
     print("Indexleme bitti. Model kontrolleri başlıyor.")
 
     if os.path.isfile(PATH1) and os.access(PATH1, os.R_OK) and os.path.isfile(PATH2) and os.access(PATH2, os.R_OK):
+        print("Model bulundu, geri yükleniyor.")
         json_file = open(PATH1, 'r')
         loaded_model_json = json_file.read()
         json_file.close()
         model = model_from_json(loaded_model_json)
         # load weights into new model
         model.load_weights(PATH2)
-        print("Loaded model from disk")
+        print("Model geri yüklendi.")
 
         # Optimizasyon yöntemi ve hiperparametreler
         # myopt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=1e-6, momentum=0.9, amsgrad=False, nesterov=True)
@@ -346,13 +402,16 @@ def loadmodel():
         return model
 
     else:
+        print("Kayıtlı bir model buluınamadı.")
         # Sinir Ağımızı Oluşturuyoruz
 
-        batch_size = 128
-        epochs = 100
-        num_classes = 10
-
-        img_width, img_height = 28, 28  # ağa girecek fotoğrafların boyutu
+        '''
+        train_image_datagenerator = ImageDataGenerator(
+            shear_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=True
+        )
+        '''
 
         # 3-channel kabul ediyor,gray scale sokamıyoruz ve en düşük 48x48 lik fotoğraf istiyor
         # pre train için ağlar hakkında bilgi: https://keras.io/applications
@@ -389,6 +448,68 @@ def loadmodel():
         model = Model(inputs, outputs)
         '''
 
+
+        batch_size = 128
+        epochs = 2
+
+        # Kendi veri setimize geçtik
+        x_train, y_train, num_classes = GetRGBSet(isTest=False)
+        x_test, y_test, num_classes = GetRGBSet(isTest=True)
+
+        # dosya isimleri class'lar, içeriği de train olacak şekilde ayarlamam gerek
+
+
+        # x_train = train_image_datagenerator.flow_from_directory('dataset/dataset', target_size=(28,28), batch_size=batch_size, shuffle=True, class_mode='categorical')
+
+
+        # fashion_mnist datasetleri x'ler image y'ler label
+        #x_train, y_train = mr.load_mnist('dataset/dataset', kind='train')
+        #x_test, y_test = mr.load_mnist('dataset/dataset', kind='t10k')
+
+
+        #x_train = x_train.reshape(x_train.shape[0], 128, 128, 3)
+        #x_test = x_test.reshape(x_test.shape[0], 128, 128, 3)
+
+
+        # RGB için extra axis ekledik
+        #x_train = np.expand_dims(x_train, axis=0)
+        #x_test = np.expand_dims(x_test, axis=0)
+
+        '''
+        
+        x_traintest = np.ndarray(shape=(60000, img_height, img_width, 3), dtype=int)
+
+        # gray'dan RGB ye çevirdik
+        for i in range(0, 60000):
+            tempimg = x_train[i]
+            tempimg = cv2.cvtColor(tempimg, cv2.COLOR_GRAY2RGB)
+            tempimg = cv2.resize(tempimg, (img_width, img_height))
+            x_traintest[i] = tempimg
+
+        x_train = x_traintest
+
+        x_testtest = np.ndarray(shape=(10000, img_height, img_width, 3), dtype=int)
+
+        for i in range(0, 10000):
+            tempimg = x_test[i]
+            tempimg = cv2.cvtColor(tempimg, cv2.COLOR_GRAY2RGB)
+            tempimg = cv2.resize(tempimg, (img_width, img_height))
+            x_testtest[i] = tempimg
+
+        x_test = x_testtest
+        '''
+        # Veri setimizdeki etiketleri de 1 boyutlu numpy array yapısından kategorik matriks yapısına çevirmemiz gerekiyor.
+        y_train = keras.utils.to_categorical(y_train, num_classes)
+        y_test = keras.utils.to_categorical(y_test, num_classes)
+
+
+        # Optimizasyon yöntemi ve hiperparametreler
+        # myopt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+
+
+
+        #Custom Network
+
         model = Sequential()
         model.add(
             Conv2D(32, (3, 3), padding='same', kernel_regularizer=l2(0.01), input_shape=(img_width, img_height, 3)))
@@ -414,55 +535,6 @@ def loadmodel():
 
         # Modeli derleyip hazırladık, geriye eğitmek kaldı
         model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
-
-        # Kendi veri setimize geçtik
-
-        # dosya isimleri class'lar, içeriği de train olacak şekilde ayarlamam gerek
-
-
-        # fashion_mnist datasetleri x'ler image y'ler label
-        x_train, y_train = mr.load_mnist('dataset/dataset', kind='train')
-        x_test, y_test = mr.load_mnist('dataset/dataset', kind='t10k')
-
-
-        x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
-        x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
-
-
-        # RGB için extra axis ekledik
-        x_train = np.expand_dims(x_train, axis=0)
-        x_test = np.expand_dims(x_test, axis=0)
-
-
-        x_traintest = np.ndarray(shape=(60000, img_height, img_width, 3), dtype=int)
-        
-        # gray'dan RGB ye çevirdik
-        for i in range(0, 60000):
-            tempimg = x_train[i]
-            tempimg = cv2.cvtColor(tempimg, cv2.COLOR_GRAY2RGB)
-            tempimg = cv2.resize(tempimg, (img_width, img_height))
-            x_traintest[i] = tempimg
-
-        x_train = x_traintest
-
-        x_testtest = np.ndarray(shape=(10000, img_height, img_width, 3), dtype=int)
-
-        for i in range(0, 10000):
-            tempimg = x_test[i]
-            tempimg = cv2.cvtColor(tempimg, cv2.COLOR_GRAY2RGB)
-            tempimg = cv2.resize(tempimg, (img_width, img_height))
-            x_testtest[i] = tempimg
-
-        x_test = x_testtest
-
-        # Veri setimizdeki etiketleri de 1 boyutlu numpy array yapısından kategorik matriks yapısına çevirmemiz gerekiyor.
-        y_train = keras.utils.to_categorical(y_train, num_classes)
-        y_test = keras.utils.to_categorical(y_test, num_classes)
-
-
-        # Optimizasyon yöntemi ve hiperparametreler
-        # myopt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-
 
         # eğitim
         model.fit(x_train, y_train,
@@ -497,42 +569,16 @@ def query(canvas):
     loc.data.imageLocation = loc.data.imageLocation.strip('.jpg') + '_cropped.jpg'
     save(loc)
     im = cv2.imread(loc.data.imageLocation, 1)
-    im = cv2.resize(im, (28, 28))
+    im = cv2.resize(im, (img_width, img_height))
 
-    x = np.ndarray(shape=(1, 28, 28, 3), dtype=int)
+    x = np.ndarray(shape=(1, img_width, img_height, 3), dtype=int)
     x[0] = im
 
     predict = model.predict_classes(x)
 
-    if predict == 0:
-        print('T-shirt')
+    predictedclass =class_number_map[int(str(predict).replace("[", "").replace("]", ""))]
 
-    elif predict == 1:
-        print('Pantalon')
-
-    elif predict == 2:
-        print('Suveter')
-
-    elif predict == 3:
-        print('Elbise')
-
-    elif predict == 4:
-        print('Kaban')
-
-    elif predict == 5:
-        print('Sandalet-Terlik')
-
-    elif predict == 6:
-        print('Gomlek')
-
-    elif predict == 7:
-        print('Ayakkabi')
-
-    elif predict == 8:
-        print('Canta')
-
-    elif predict == 9:
-        print('Cizme')
+    print(predictedclass)
 
 
 def concat_images(imga, imgb):
@@ -555,9 +601,9 @@ def getSimilarImage(canvas):
     im = cv2.imread(loc.data.imageLocation, 1)
     os.remove(loc.data.imageLocation)
 
-    im = cv2.resize(im, (28, 28))
+    im = cv2.resize(im, (img_width, img_height))
 
-    x = np.ndarray(shape=(1, 28, 28, 3), dtype=int)
+    x = np.ndarray(shape=(1, img_width, img_height, 3), dtype=int)
     x[0] = im
 
     numofclass = model.predict_classes(x)
